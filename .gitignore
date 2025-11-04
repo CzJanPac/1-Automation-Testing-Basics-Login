@@ -1,0 +1,17 @@
+# Node / npm
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+/*.zip
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
