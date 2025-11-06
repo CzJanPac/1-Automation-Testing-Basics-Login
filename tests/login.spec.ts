@@ -26,6 +26,53 @@ test.describe('Login functionality tests', () => {
     await expect(page).toHaveURL(/\/inventory\.html$/);
   });
 
-  // Test case ID: TC_LOGIN_003
+  // Test case ID: TC_LOGIN_003 – Invalid login (data-driven)
+  test.describe('Login – negative (TC_LOGIN_003.*)', () => {
+    // Data-driven negative login tests
+    const A64 = 'a'.repeat(64);
+    const SPECIAL_SIMPLE = '/*-+%';
+    const SPECIAL_UNICODE = 'ˇ=/*-+';
 
+    type Case = {
+      id: number;
+      name: string;
+      user: string;
+      pass: string;
+      expected: RegExp;
+    };
+
+    const cases: Case[] = [
+      { id: 1,  name: 'empty username & password',       user: '',               pass: '',               expected: /Epic sadface:\s*Username is required/i },
+      { id: 2,  name: 'missing password',                user: 'standard_user',  pass: '',               expected: /Epic sadface:\s*Password is required/i },
+      { id: 3,  name: 'missing username',                user: '',               pass: 'secret_sauce',   expected: /Epic sadface:\s*Username is required/i },
+      { id: 4,  name: 'wrong username',                  user: 'invalid_user',   pass: 'secret_sauce',   expected: /Epic sadface:\s*Username and password do not match any user in this service/i },
+      { id: 5,  name: 'wrong password',                  user: 'standard_user',  pass: 'wrong_password', expected: /Epic sadface:\s*Username and password do not match any user in this service/i },
+      { id: 6,  name: 'locked out user',                 user: 'locked_out_user',pass: 'secret_sauce',   expected: /Epic sadface:\s*Sorry, this user has been locked out\./i },
+      { id: 7,  name: 'password with special chars',     user: 'standard_user',  pass: SPECIAL_SIMPLE,   expected: /Epic sadface:\s*Username and password do not match any user in this service/i },
+      { id: 8,  name: 'username with special chars',     user: SPECIAL_SIMPLE,   pass: 'secret_sauce',   expected: /Epic sadface:\s*Username and password do not match any user in this service/i },
+      { id: 9,  name: '64-char username',                user: A64,              pass: 'secret_sauce',   expected: /Epic sadface:\s*Username and password do not match any user in this service/i },
+      { id:10,  name: '64-char password',                user: 'standard_user',  pass: A64,              expected: /Epic sadface:\s*Username and password do not match any user in this service/i },
+      { id:11,  name: 'username contains digits',        user: 'user123',        pass: 'secret_sauce',   expected: /Epic sadface:\s*Username and password do not match any user in this service/i },
+      { id:12,  name: 'password contains digits',        user: 'standard_user',  pass: 'pass123',        expected: /Epic sadface:\s*Username and password do not match any user in this service/i },
+      { id:13,  name: 'both fields special chars',       user: SPECIAL_UNICODE,  pass: SPECIAL_UNICODE,  expected: /Epic sadface:\s*Username and password do not match any user in this service/i },
+      { id:14,  name: 'valid user, wrong password',      user: 'performance_glitch_user', pass: 'wrong_pass', expected: /Epic sadface:\s*Username and password do not match any user in this service/i },
+      { id:15,  name: 'invalid user, missing password',  user: 'invalid_user',   pass: '',               expected: /Epic sadface:\s*Password is required/i },
+    ];
+
+    for (const c of cases) {
+      test(`TC_LOGIN_003.${c.id.toString().padStart(2, '0')} – ${c.name}`, async ({ page }) => {
+        // Fill username and password fields
+        await page.getByRole('textbox', { name: 'Username' }).fill(c.user);
+        await page.getByRole('textbox', { name: 'Password' }).fill(c.pass);
+
+        // Click the Login button
+        await page.getByRole('button', { name: 'Login' }).click();
+
+        // Verify error message is visible and matches expected text
+        const error = page.locator('[data-test="error"]');
+        await expect(error).toBeVisible();
+        await expect(error).toContainText(c.expected);
+      });
+    }
+  });
 });
