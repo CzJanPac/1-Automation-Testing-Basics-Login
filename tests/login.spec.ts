@@ -96,7 +96,7 @@ test.describe('Logout functionality tests', () => {
   });
 
   // TC_LOGIN_005 - Logout Functionality
-  test.only('Verify successful logout', async ({ page }) => {
+  test('Verify successful logout', async ({ page }) => {
     await page.locator('#react-burger-menu-btn').click();
     await page.locator('#logout_sidebar_link').click();
 
