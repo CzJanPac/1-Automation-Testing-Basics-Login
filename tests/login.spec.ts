@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-// Test Suite: Login Functionality TC_LOGIN_001 - TC_LOGIN_003
+// Test Suite: Login Functionality TC_LOGIN_001 - TC_LOGIN_004
 test.describe('Login functionality tests', () => {
 
   // Common setup – run before each test
@@ -74,5 +74,34 @@ test.describe('Login functionality tests', () => {
         await expect(error).toContainText(c.expected);
       });
     }
+  });
+  // TC_LOGIN_004 - Password Field Masking
+  test('Verify password masking', async ({ page }) => {
+    await expect(page.getByRole('textbox', { name: 'Password' })).toHaveAttribute('type', 'password');
+  });
+});
+
+// Test Suite: Logout Functionality TC_LOGIN_005 - TC_LOGIN_006
+test.describe('Logout functionality tests', () => {
+
+  // Common setup – run before each test
+  test.beforeEach(async ({ page }) => {
+    await page.goto('https://www.saucedemo.com/');
+    await page.getByRole('textbox', { name: 'Username' }).fill('standard_user');
+    await page.getByRole('textbox', { name: 'Password' }).fill('secret_sauce');
+    await page.getByRole('button', { name: 'Login' }).click();
+    
+    // Verify correct URL after login
+    await expect(page).toHaveURL(/\/inventory\.html$/);
+  });
+
+  // TC_LOGIN_005 - Logout Functionality
+  test.only('Verify successful logout', async ({ page }) => {
+    await page.locator('#react-burger-menu-btn').click();
+    await page.locator('#logout_sidebar_link').click();
+
+    // Verify that the user is redirected back to the Login page
+    await expect(page).toHaveURL('https://www.saucedemo.com/');
+    await expect(page.locator('[data-test="login-button"]')).toBeVisible();
   });
 });
